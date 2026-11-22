@@ -52,17 +52,17 @@ fun SettingsScreen() {
         SectionTitle("Tema")
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ThemeId.values().forEach { t ->
-                ThemePreview(t, Settings.theme == t, Modifier.weight(1f)) { Settings.setTheme(t) }
+                ThemePreview(t, Settings.theme == t, Modifier.weight(1f)) { Settings.applyTheme(t) }
             }
         }
 
         SectionTitle("Koneksi")
         AuroraCard(Modifier.fillMaxWidth()) {
             ToggleRow("Sambung ulang otomatis", Settings.autoReconnect, "Coba lagi hingga 5 kali bila putus") {
-                Settings.setAutoReconnect(it)
+                Settings.applyAutoReconnect(it)
             }
             ToggleRow("Log debug", Settings.debugLog, "Tampilkan detail teknis di tab Log") {
-                Settings.setDebugLog(it); AppLog.debugEnabled = it
+                Settings.applyDebugLog(it); AppLog.debugEnabled = it
             }
         }
 
@@ -153,7 +153,7 @@ private fun AppPicker(onDismiss: () -> Unit) {
                 }
             }
         },
-        confirmButton = { TextButton({ Settings.setAllowedApps(chosen); onDismiss() }) { Text("Simpan", color = p.accent) } },
+        confirmButton = { TextButton({ Settings.applyAllowedApps(chosen); onDismiss() }) { Text("Simpan", color = p.accent) } },
         dismissButton = { TextButton(onDismiss) { Text("Batal", color = p.sub) } }
     )
 }
