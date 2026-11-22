@@ -149,8 +149,12 @@ object XrayConfig {
         val stream = JSONObject().put("network", n.network)
         when (n.tls) {
             "tls" -> stream.put("security", "tls").put("tlsSettings", JSONObject()
-                .put("serverName", tlsName).put("allowInsecure", p.allowInsecure)
+                .put("serverName", tlsName)
                 .apply {
+                    // allowInsecure sudah dihapus di Xray terbaru. Bila SNI berbeda dari domain server
+                    // (bug host), verifikasi sertifikat dilakukan terhadap domain server yang asli.
+                    val isIp = Regex("^[0-9.]+$").matches(n.address) || n.address.contains(':')
+                    if (!isIp && !tlsName.equals(n.address, true)) put("verifyPeerCertByName", n.address)
                     if (n.fp.isNotEmpty()) put("fingerprint", n.fp)
                     if (n.alpn.isNotEmpty()) put("alpn", JSONArray(n.alpn.split(',')))
                 })
