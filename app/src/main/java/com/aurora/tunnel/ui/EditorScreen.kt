@@ -81,7 +81,6 @@ fun EditorScreen(initial: Profile?, onClose: () -> Unit) {
                         singleLine = false, minLines = 4) { d = d.copy(xrayLink = it.trim()) }
                     ToggleRow("TLS fragment", d.xrayFragment, "Memecah ClientHello TLS untuk melewati filter SNI") { d = d.copy(xrayFragment = it) }
                     ToggleRow("Mux", d.xrayMux, "Multiplexing (tidak dipakai bila flow vision)") { d = d.copy(xrayMux = it) }
-                    ToggleRow("Izinkan sertifikat tidak valid", d.allowInsecure) { d = d.copy(allowInsecure = it) }
                 }
                 Mode.OVPN -> {
                     SectionTitle("OpenVPN")
