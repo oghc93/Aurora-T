@@ -19,7 +19,7 @@ unzip -o -q "$TMP/xray.zip" xray -d "$TMP/xray"
 install -m 755 "$TMP/xray/xray" "$LIBS/libxray.so"
 
 echo "==> dnstt-client (SlowDNS)"
-git clone --depth 1 https://www.bamsoftware.com/git/dnstt.git "$TMP/dnstt"
+git clone https://www.bamsoftware.com/git/dnstt.git "$TMP/dnstt"
 ( cd "$TMP/dnstt/dnstt-client" && \
   CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "-s -w" -o "$LIBS/libdnstt.so" . )
 chmod 755 "$LIBS/libdnstt.so"
