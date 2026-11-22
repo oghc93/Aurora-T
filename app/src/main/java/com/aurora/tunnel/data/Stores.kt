@@ -71,9 +71,9 @@ object Settings {
         allowedApps = prefs.getStringSet("allowedApps", emptySet()) ?: emptySet()
     }
 
-    fun setTheme(t: ThemeId) { theme = t; prefs.edit().putString("theme", t.name).apply() }
-    fun setAutoReconnect(v: Boolean) { autoReconnect = v; prefs.edit().putBoolean("autoReconnect", v).apply() }
-    fun setDebugLog(v: Boolean) { debugLog = v; prefs.edit().putBoolean("debugLog", v).apply() }
+    fun applyTheme(t: ThemeId) { theme = t; prefs.edit().putString("theme", t.name).apply() }
+    fun applyAutoReconnect(v: Boolean) { autoReconnect = v; prefs.edit().putBoolean("autoReconnect", v).apply() }
+    fun applyDebugLog(v: Boolean) { debugLog = v; prefs.edit().putBoolean("debugLog", v).apply() }
     fun select(id: String?) { selectedProfileId = id; prefs.edit().putString("selected", id).apply() }
-    fun setAllowedApps(s: Set<String>) { allowedApps = s; prefs.edit().putStringSet("allowedApps", s).apply() }
+    fun applyAllowedApps(s: Set<String>) { allowedApps = s; prefs.edit().putStringSet("allowedApps", s).apply() }
 }
