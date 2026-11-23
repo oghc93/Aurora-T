@@ -28,7 +28,15 @@ jobs:
           gradle-version: "8.10.2"
 
       - name: Build APK release
-        run: gradle --no-daemon assembleRelease
+        run: |
+          set -o pipefail
+          gradle --no-daemon --console=plain assembleRelease 2>&1 | tee build.log
+
+      - name: Ringkasan error
+        if: failure()
+        run: |
+          echo "===== ERROR KOTLIN / RESOURCE ====="
+          grep -nE "^e: |error:|AAPT|Execution failed|What went wrong" -A3 build.log | head -80
 
       - uses: actions/upload-artifact@v4
         with:
