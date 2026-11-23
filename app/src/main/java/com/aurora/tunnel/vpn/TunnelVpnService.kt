@@ -160,6 +160,7 @@ class TunnelVpnService : VpnService() {
 
             var lost = false
             if (tick % 3 == 0 && engine?.isAlive() == false) {
+                AppLog.quiet = false
                 AppLog.w("APP", "Koneksi engine terputus")
                 lost = true
             }
