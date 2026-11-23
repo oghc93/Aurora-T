@@ -125,6 +125,7 @@ fun ProfilesScreen(onEdit: (Profile?) -> Unit) {
         val payOn = sshLike && selected?.enablePayload == true
         val proxyHost = selected?.proxyHost.orEmpty()
         val proxyOn = sshLike && proxyHost.isNotBlank()
+        val gwOn = sshLike && selected?.enableUdpgw == true
         Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             AuroraCard(Modifier.weight(1f), onClick = { selected?.let { onEdit(it) } }) {
                 Text("Payload", color = p.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
@@ -134,6 +135,11 @@ fun ProfilesScreen(onEdit: (Profile?) -> Unit) {
                 Text("Proxy", color = p.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 Text(if (proxyOn) "$proxyHost:${selected?.proxyPort}" else if (sshLike) "OFF" else "—",
                     color = if (proxyOn) p.ok else p.sub, fontSize = 13.sp)
+            }
+            AuroraCard(Modifier.weight(1f), onClick = { selected?.let { onEdit(it) } }) {
+                Text("BadVPN", color = p.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text(if (!sshLike) "—" else if (gwOn) "${selected?.udpgwPort}" else "OFF",
+                    color = if (gwOn) p.ok else p.sub, fontSize = 13.sp)
             }
         }
 
@@ -159,7 +165,9 @@ fun ProfilesScreen(onEdit: (Profile?) -> Unit) {
                                 color = p.sub, fontSize = 12.sp)
                         }
                         Pill(protoLabel(pr), p.accent2)
-                        if (pr.lb) Pill("LB", p.accent, Modifier.padding(start = 6.dp))
+                        Box(Modifier.padding(start = 6.dp)) {
+                            FilterPill("LB", pr.lb) { ProfileStore.upsert(pr.copy(lb = !pr.lb)) }
+                        }
                     }
                     Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         val ms = pings[pr.id]
