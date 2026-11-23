@@ -76,12 +76,11 @@ object AppLog {
         add(level, tag, s)
     }
 
-    /** Setelah tersambung: log mesin (Xray/SSH/dll) hanya menampilkan peringatan & error; status ping tetap tampil. */
+    /** Setelah tersambung: log hanya menampilkan status ping (dan error fatal). */
     @Volatile var quiet = false
-    private val alwaysShow = setOf("APP", "PING", "TUN")
 
     private fun add(level: Level, tag: String, msg: String, html: Boolean = false) {
-        if (quiet && level.ordinal < Level.WARN.ordinal && tag !in alwaysShow) return
+        if (quiet && tag != "PING" && level != Level.ERROR) return
         synchronized(lock) {
             val now = System.currentTimeMillis()
             val last = buf.lastOrNull()
