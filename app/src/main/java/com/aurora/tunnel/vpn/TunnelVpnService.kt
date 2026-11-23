@@ -80,9 +80,13 @@ class TunnelVpnService : VpnService() {
 
     private fun buildEngine(sel: Profile): Engine {
         if (Settings.loadBalance.v) {
-            val nodes = ProfileStore.profiles.value.filter { it.lb }
-            if (nodes.size >= 2) return LbEngine(nodes)
-            AppLog.w("LB", "Load Balance aktif tapi node bertanda LB kurang dari 2, memakai profil terpilih")
+            val nodes = (ProfileStore.profiles.value.filter { it.lb } + sel)
+                .distinctBy { it.id }.filter { it.mode != Mode.OVPN }
+            if (nodes.size >= 2) {
+                AppLog.i("LB", "Node: " + nodes.joinToString(", ") { it.name })
+                return LbEngine(nodes)
+            }
+            AppLog.w("LB", "Load Balance aktif tapi baru ${nodes.size} node. Tandai LB minimal 2 profil, memakai profil terpilih")
         }
         return EngineFactory.create(sel.mode)
     }
