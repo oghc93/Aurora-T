@@ -11,22 +11,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.material3.IconButton
-import androidx.compose.material.icons.filled.Menu
 import android.os.Handler
 import android.os.Looper
 import com.aurora.tunnel.core.Tunnel
@@ -41,6 +32,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.border
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import kotlinx.coroutines.launch
 import com.aurora.tunnel.data.Profile
 import com.aurora.tunnel.data.Settings
 import com.aurora.tunnel.log.AppLog
@@ -85,52 +91,56 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+private data class Tab(val label: String, val icon: ImageVector)
+
 @Composable
 private fun Root(onConnect: (String) -> Unit, onDisconnect: () -> Unit, onReconnect: (String) -> Unit) {
     val p = LocalAurora.current
-    var tab by remember { mutableStateOf(0) }          // 0 = HOME, 1 = LOG
-    var settings by remember { mutableStateOf(false) }
+    val tabs = listOf(
+        Tab("Beranda", Icons.Filled.Home),
+        Tab("Profil", Icons.Filled.Person),
+        Tab("Log", Icons.AutoMirrored.Filled.List),
+        Tab("Pengaturan", Icons.Filled.Settings)
+    )
+    val pager = rememberPagerState(pageCount = { tabs.size })
+    val scope = rememberCoroutineScope()
     var editing by remember { mutableStateOf(false) }
     var editTarget by remember { mutableStateOf<Profile?>(null) }
 
     BackHandler(enabled = editing) { editing = false }
-    BackHandler(enabled = !editing && settings) { settings = false }
-
-    val barColor = if (p.blobs.isEmpty()) p.card else p.card.copy(alpha = if (p.glass) 0.16f else 0.62f)
+    BackHandler(enabled = !editing && pager.currentPage != 0) { scope.launch { pager.animateScrollToPage(0) } }
 
     Column(Modifier.fillMaxSize()) {
-        if (editing) {
-            Box(Modifier.weight(1f).statusBarsPadding().navigationBarsPadding()) {
+        Box(Modifier.weight(1f).statusBarsPadding()) {
+            if (editing) {
                 EditorScreen(editTarget) { editing = false }
-            }
-        } else {
-            Column(Modifier.fillMaxWidth().background(barColor).statusBarsPadding()) {
-                Row(Modifier.fillMaxWidth().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton({ settings = !settings }) {
-                        Icon(Icons.Filled.Menu, "Pengaturan", tint = if (settings) p.accent else p.sub)
+            } else {
+                HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
+                    when (page) {
+                        0 -> HomeScreen(onConnect, onDisconnect, onReconnect) { scope.launch { pager.animateScrollToPage(1) } }
+                        1 -> ProfilesScreen { target -> editTarget = target; editing = true }
+                        2 -> LogScreen()
+                        else -> SettingsScreen()
                     }
-                    listOf("HOME", "LOG").forEachIndexed { i, label ->
-                        val on = !settings && tab == i
-                        Column(
-                            Modifier.weight(1f).clickable { tab = i; settings = false },
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Box(Modifier.height(50.dp), contentAlignment = Alignment.Center) {
-                                Text(label, color = if (on) p.accent else p.sub, fontSize = 15.sp, fontWeight = FontWeight.Medium)
-                            }
-                            Box(Modifier.fillMaxWidth(0.8f).height(3.dp)
-                                .background(if (on) p.accent else Color.Transparent))
-                        }
-                    }
-                    Box(Modifier.width(48.dp))
                 }
-                Box(Modifier.fillMaxWidth().height(1.dp).background(p.cardBorder.copy(0.7f)))
             }
-            Box(Modifier.weight(1f)) {
-                when {
-                    settings -> Box(Modifier.navigationBarsPadding()) { SettingsScreen() }
-                    tab == 0 -> HomeScreen(onConnect, onDisconnect, onReconnect) { target -> editTarget = target; editing = true }
-                    else -> Box(Modifier.navigationBarsPadding()) { LogScreen() }
+        }
+        if (!editing) {
+            NavigationBar(
+                containerColor = if (p.blobs.isEmpty()) p.card else p.card.copy(alpha = if (p.glass) 0.16f else 0.62f),
+                modifier = Modifier.border(1.dp, p.cardBorder.copy(alpha = 0.5f), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            ) {
+                tabs.forEachIndexed { i, t ->
+                    NavigationBarItem(
+                        selected = pager.currentPage == i, onClick = { scope.launch { pager.animateScrollToPage(i) } },
+                        icon = { Icon(t.icon, contentDescription = t.label) },
+                        label = { Text(t.label) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF04131A), selectedTextColor = p.accent,
+                            indicatorColor = p.accent, unselectedIconColor = p.sub, unselectedTextColor = p.sub
+                        )
+                    )
                 }
             }
         }
