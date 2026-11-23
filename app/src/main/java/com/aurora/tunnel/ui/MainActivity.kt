@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import com.aurora.tunnel.data.Profile
 import com.aurora.tunnel.data.Settings
 import com.aurora.tunnel.log.AppLog
