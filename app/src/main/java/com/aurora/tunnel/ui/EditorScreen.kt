@@ -237,11 +237,11 @@ private fun TransportSection(d: Profile, onPayloadGen: () -> Unit, set: (Profile
 
 @Composable
 private fun UdpgwSection(d: Profile, forced: Boolean, set: (Profile) -> Unit) {
-    SectionTitle("UDP")
-    if (!forced) ToggleRow("udpgw", d.enableUdpgw, "UDP lewat badvpn-udpgw. Mati: hanya DNS yang diteruskan") { set(d.copy(enableUdpgw = it)) }
+    SectionTitle("BadVPN (UDPGW)")
+    if (!forced) ToggleRow("BadVPN UDPGW", d.enableUdpgw, "UDP (game, panggilan, QUIC) lewat badvpn-udpgw di server. Mati: hanya DNS yang diteruskan") { set(d.copy(enableUdpgw = it)) }
     if (forced || d.enableUdpgw) {
-        Field("udpgw host (di sisi server)", d.udpgwHost) { set(d.copy(udpgwHost = it.trim())) }
-        NumField("udpgw port", d.udpgwPort) { set(d.copy(udpgwPort = it)) }
+        Field("BadVPN host (di sisi server)", d.udpgwHost) { set(d.copy(udpgwHost = it.trim())) }
+        NumField("BadVPN port", d.udpgwPort) { set(d.copy(udpgwPort = it)) }
     }
 }
 
