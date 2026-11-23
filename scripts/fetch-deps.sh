@@ -35,8 +35,17 @@ echo "==> OpenVPN (libovpnexec.so dari ics-openvpn, F-Droid) - GPLv2"
   [ -n "$VC" ] || exit 1
   curl -fL -o "$TMP/ovpn.apk" "https://f-droid.org/repo/de.blinkt.openvpn_${VC}.apk" || exit 1
   mkdir -p "$TMP/ovpn"
-  unzip -o -q "$TMP/ovpn.apk" 'lib/arm64-v8a/libovpnexec.so' -d "$TMP/ovpn" || exit 1
-  install -m 755 "$TMP/ovpn/lib/arm64-v8a/libovpnexec.so" "$LIBS/libovpnexec.so"
+  # libovpnexec.so butuh libopenvpn.so (dan pustaka pendukung) di folder yang sama
+  unzip -o -q "$TMP/ovpn.apk" 'lib/arm64-v8a/*.so' -d "$TMP/ovpn" || exit 1
+  for f in "$TMP"/ovpn/lib/arm64-v8a/*.so; do
+    n="$(basename "$f")"
+    case "$n" in
+      libovpn3.so|libovpn3*|libosslspeedtest.so) continue ;;   # tidak dipakai, besar
+    esac
+    install -m 755 "$f" "$LIBS/$n"
+    echo "  + $n"
+  done
+  [ -f "$LIBS/libopenvpn.so" ] || echo "PERINGATAN: libopenvpn.so tidak ditemukan di APK"
 ) || echo "PERINGATAN: binary OpenVPN gagal diambil, mode OpenVPN tidak akan jalan (mode lain tetap normal)."
 
 echo "==> selesai"
