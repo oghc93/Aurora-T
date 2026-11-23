@@ -1,6 +1,7 @@
 package com.aurora.tunnel.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -99,6 +100,15 @@ fun HomeScreen(
                 StatCard("Unduh", formatRate(rxRate), formatBytes(rx), p.accent, Modifier.weight(1f))
                 StatCard("Unggah", formatRate(txRate), formatBytes(tx), p.accent2, Modifier.weight(1f))
             }
+            VSpace(14)
+            AuroraCard(Modifier.fillMaxWidth()) {
+                val lbN = profiles.count { it.lb }
+                ToggleRow(
+                    "Load Balance", Settings.loadBalance.v,
+                    if (Settings.loadBalance.v) "$lbN profil ditandai LB — tandai minimal 2 (chip LB di daftar bawah)"
+                    else "Bagi koneksi ke beberapa profil sekaligus"
+                ) { if (!Tunnel.isActive) Settings.loadBalance.set(it) }
+            }
             if (Settings.showProfilesHome.v && profiles.isNotEmpty()) {
                 SectionTitle("Profil", Modifier.fillMaxWidth())
                 profiles.forEach { pr ->
@@ -110,7 +120,9 @@ fun HomeScreen(
                                 Text(transportLabel(pr), color = p.sub, fontSize = 12.sp)
                             }
                             Pill(protoLabel(pr), p.accent2)
-                            if (pr.lb && Settings.loadBalance.v) Pill("LB", p.accent, Modifier.padding(start = 6.dp))
+                            Box(Modifier.padding(start = 6.dp)) {
+                                FilterPill("LB", pr.lb) { if (!Tunnel.isActive) ProfileStore.upsert(pr.copy(lb = !pr.lb)) }
+                            }
                         }
                     }
                 }
