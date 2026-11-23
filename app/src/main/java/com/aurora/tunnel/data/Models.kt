@@ -35,7 +35,7 @@ data class Profile(
     val payloadExpectResponse: Boolean = true,
     val allowInsecure: Boolean = true,
     // UDP lewat udpgw (badvpn-udpgw di sisi server)
-    val enableUdpgw: Boolean = false,
+    val enableUdpgw: Boolean = true,
     val udpgwHost: String = "127.0.0.1",
     val udpgwPort: Int = 7300,
     // SlowDNS (dnstt)
@@ -89,7 +89,7 @@ data class Profile(
                 payload = j.optString("payload", DEFAULT_PAYLOAD),
                 payloadExpectResponse = j.optBoolean("payloadExpectResponse", true),
                 allowInsecure = j.optBoolean("allowInsecure", true),
-                enableUdpgw = j.optBoolean("enableUdpgw", false),
+                enableUdpgw = j.optBoolean("enableUdpgw", true),
                 udpgwHost = j.optString("udpgwHost", "127.0.0.1"),
                 udpgwPort = j.optInt("udpgwPort", 7300),
                 dnsServer = j.optString("dnsServer", "8.8.8.8"),
