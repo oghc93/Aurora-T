@@ -96,6 +96,7 @@ class TunnelVpnService : VpnService(), TunHost {
     }
 
     private fun beginConnect(profileId: String?) {
+        if (engine != null || tun != null || tunRunning) cleanup()   // sisa sesi lama tidak boleh tertinggal
         startForeground(NOTIF_ID, notification("Menghubungkan…"))
         Tunnel.resetStats()
         Tunnel.error.value = null
@@ -312,7 +313,7 @@ class TunnelVpnService : VpnService(), TunHost {
         c.routes.forEach { (a, l) -> runCatching { b.addRoute(a, l); nr++ } }
         c.routes6.forEach { (a, l) -> runCatching { b.addRoute(a, l) } }
         val custom = Settings.dns.v.split(',', ';', ' ').map { it.trim() }.filter { it.isNotEmpty() }
-        val dns = if (custom.isNotEmpty()) custom else c.dns
+        val dns = if (custom.isNotEmpty()) custom else c.dns.toList()
         dns.forEach { runCatching { b.addDnsServer(it) } }
         c.domains.firstOrNull()?.let { runCatching { b.addSearchDomain(it) } }
         if (Build.VERSION.SDK_INT >= 29) b.setMetered(false)
