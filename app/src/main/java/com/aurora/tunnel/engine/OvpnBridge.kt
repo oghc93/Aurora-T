@@ -9,8 +9,8 @@ class TunConfig {
     var prefix: Int = 32
     var mtu: Int = 1500
     var ip6: String? = null
-    val dns = mutableListOf<String>()
-    val domains = mutableListOf<String>()
+    val dns = LinkedHashSet<String>()
+    val domains = LinkedHashSet<String>()
     val routes = LinkedHashSet<Pair<String, Int>>()
     val routes6 = LinkedHashSet<Pair<String, Int>>()
     var remoteGw: String? = null
