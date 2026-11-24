@@ -21,6 +21,13 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -132,16 +139,16 @@ fun ProfilesScreen(onEdit: (Profile?) -> Unit) {
         val proxyOn = wrapLike && proxyHost.isNotBlank()
         val gwOn = sshLike && selected?.enableUdpgw == true
         Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            AuroraCard(Modifier.weight(1f), onClick = { selected?.let { onEdit(it) } }) {
+            AuroraCard(Modifier.weight(1f), onClick = { selected?.let { onEdit(it) } }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp), shapeRadius = 14.dp) {
                 Text("Payload", color = p.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 Text(if (!wrapLike) "—" else if (payOn) "ON" else "OFF", color = if (payOn) p.ok else p.sub, fontSize = 13.sp)
             }
-            AuroraCard(Modifier.weight(1f), onClick = { selected?.let { onEdit(it) } }) {
+            AuroraCard(Modifier.weight(1f), onClick = { selected?.let { onEdit(it) } }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp), shapeRadius = 14.dp) {
                 Text("Proxy", color = p.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 Text(if (proxyOn) "$proxyHost:${selected?.proxyPort}" else if (wrapLike) "OFF" else "—",
                     color = if (proxyOn) p.ok else p.sub, fontSize = 13.sp)
             }
-            AuroraCard(Modifier.weight(1f), onClick = { selected?.let { onEdit(it) } }) {
+            AuroraCard(Modifier.weight(1f), onClick = { selected?.let { onEdit(it) } }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp), shapeRadius = 14.dp) {
                 Text("BadVPN", color = p.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 Text(if (!sshLike) "—" else if (gwOn) "${selected?.udpgwPort}" else "OFF",
                     color = if (gwOn) p.ok else p.sub, fontSize = 13.sp)
@@ -161,38 +168,43 @@ fun ProfilesScreen(onEdit: (Profile?) -> Unit) {
         }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items(shown, key = { it.id }) { pr ->
-                AuroraCard(Modifier.fillMaxWidth(), selected = pr.id == selectedId, onClick = { Settings.select(pr.id) }) {
+                AuroraCard(
+                    Modifier.fillMaxWidth(), selected = pr.id == selectedId, onClick = { Settings.select(pr.id) },
+                    contentPadding = PaddingValues(start = 14.dp, end = 6.dp, top = 8.dp, bottom = 8.dp), shapeRadius = 16.dp
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text(pr.name, color = p.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(pr.name, color = p.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1, modifier = Modifier.weight(1f, fill = false))
+                                MiniChip(protoLabel(pr), false, p.accent2, null)
+                                MiniChip("LB", pr.lb, p.accent) { ProfileStore.upsert(pr.copy(lb = !pr.lb)) }
+                            }
                             val t = Ping.target(pr)
-                            Text(transportLabel(pr) + " • " + (t?.let { "${it.first}:${it.second}" } ?: "—"),
-                                color = p.sub, fontSize = 12.sp)
+                            val ms = pings[pr.id]
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(transportLabel(pr) + " • " + (t?.let { "${it.first}:${it.second}" } ?: "—"),
+                                    color = p.sub, fontSize = 11.sp, maxLines = 1, modifier = Modifier.weight(1f, fill = false))
+                                Text(
+                                    "  " + when { ms == null -> "—"; ms < 0 -> "Timeout"; else -> "$ms ms" },
+                                    color = when { ms == null -> p.sub; ms < 0 -> p.err; ms < 300 -> p.ok; else -> p.warn },
+                                    fontSize = 11.sp, maxLines = 1
+                                )
+                            }
                         }
-                        Pill(protoLabel(pr), p.accent2)
-                        Box(Modifier.padding(start = 6.dp)) {
-                            FilterPill("LB", pr.lb) { ProfileStore.upsert(pr.copy(lb = !pr.lb)) }
-                        }
-                    }
-                    Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        val ms = pings[pr.id]
-                        Text(
-                            when { ms == null -> "Ping —"; ms < 0 -> "Timeout"; else -> "$ms ms" },
-                            color = when { ms == null -> p.sub; ms < 0 -> p.err; ms < 300 -> p.ok; else -> p.warn },
-                            fontSize = 13.sp, modifier = Modifier.weight(1f)
-                        )
-                        IconButton({
-                            val i = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, shareText(pr))
-                            ctx.startActivity(Intent.createChooser(i, "Bagikan profil").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                        }, Modifier.size(38.dp)) { Icon(Icons.Filled.Share, "Bagikan", tint = p.sub) }
-                        IconButton({ onEdit(pr) }, Modifier.size(38.dp)) { Icon(Icons.Filled.Edit, "Edit", tint = p.sub) }
+                        IconButton({ onEdit(pr) }, Modifier.size(34.dp)) { Icon(Icons.Filled.Edit, "Edit", tint = p.sub, modifier = Modifier.size(19.dp)) }
                         IconButton({
                             ProfileStore.delete(pr.id)
                             if (Settings.selectedProfileId == pr.id) Settings.select(null)
-                        }, Modifier.size(38.dp)) { Icon(Icons.Filled.Delete, "Hapus", tint = p.err) }
+                        }, Modifier.size(34.dp)) { Icon(Icons.Filled.Delete, "Hapus", tint = p.err, modifier = Modifier.size(19.dp)) }
                         Box {
-                            IconButton({ menuFor = pr.id }, Modifier.size(38.dp)) { Icon(Icons.Filled.MoreVert, "Lainnya", tint = p.sub) }
+                            IconButton({ menuFor = pr.id }, Modifier.size(34.dp)) { Icon(Icons.Filled.MoreVert, "Lainnya", tint = p.sub, modifier = Modifier.size(19.dp)) }
                             DropdownMenu(expanded = menuFor == pr.id, onDismissRequest = { menuFor = null }) {
+                                DropdownMenuItem(text = { Text("Bagikan") }, onClick = {
+                                    val i = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, shareText(pr))
+                                    ctx.startActivity(Intent.createChooser(i, "Bagikan profil").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                                    menuFor = null
+                                })
                                 DropdownMenuItem(
                                     text = { Text(if (pr.lb) "Keluarkan dari LB" else "Tandai LB") },
                                     onClick = { ProfileStore.upsert(pr.copy(lb = !pr.lb)); menuFor = null })
@@ -211,4 +223,18 @@ fun ProfilesScreen(onEdit: (Profile?) -> Unit) {
 
     if (showLink) InputDialog("Impor link", "", "Tempel link vmess:// vless:// trojan:// ss:// atau host:port@user:pass",
         onOk = { if (it.isNotBlank()) doImport(it) }) { showLink = false }
+}
+
+
+/** Label kecil di samping nama profil (protokol / tanda LB). */
+@Composable
+private fun MiniChip(text: String, on: Boolean, c: Color, onClick: (() -> Unit)?) {
+    val p = LocalAurora.current
+    val shape = RoundedCornerShape(8.dp)
+    var m = Modifier.padding(start = 6.dp).clip(shape)
+        .background(if (on) c.copy(alpha = 0.25f) else c.copy(alpha = 0.10f))
+        .border(1.dp, if (on) c else p.cardBorder, shape)
+    if (onClick != null) m = m.clickable(onClick = onClick)
+    Text(text, color = if (on) c else if (onClick == null) c else p.sub, fontSize = 10.sp, fontWeight = FontWeight.Bold,
+        modifier = m.padding(horizontal = 7.dp, vertical = 2.dp), maxLines = 1)
 }
