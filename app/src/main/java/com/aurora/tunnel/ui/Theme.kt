@@ -169,10 +169,12 @@ fun AuroraCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     selected: Boolean = false,
+    contentPadding: androidx.compose.foundation.layout.PaddingValues = androidx.compose.foundation.layout.PaddingValues(16.dp),
+    shapeRadius: androidx.compose.ui.unit.Dp = 20.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val p = LocalAurora.current
-    val shape = RoundedCornerShape(20.dp)
+    val shape = RoundedCornerShape(shapeRadius)
     val fill = if (p.glass)
         Modifier.background(Brush.linearGradient(listOf(Color.White.copy(0.20f), Color.White.copy(0.06f))), shape)
     else Modifier.background(p.card, shape)
@@ -185,7 +187,7 @@ fun AuroraCard(
         modifier.clip(shape).then(fill)
             .border(if (selected) 1.5.dp else 1.dp, border, shape)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(16.dp),
+            .padding(contentPadding),
         content = content
     )
 }
